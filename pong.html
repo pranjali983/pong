@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong</title>
+<style>
+  body{
+    margin:0;background:#0f172a;color:#fff;font-family:Arial;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:100vh;text-align:center
+  }
+  h1{color:#38bdf8;margin-bottom:5px}
+  #score{font-size:22px;margin-bottom:10px}
+  canvas{background:#1e293b;border:3px solid #334155;border-radius:12px}
+  p{color:#94a3b8;margin-top:10px;font-size:14px}
+</style>
+</head>
+<body>
+  <h1>Pong</h1>
+  <div id="score">You 0 - 0 AI</div>
+  <canvas id="game" width="400" height="300"></canvas>
+  <p>Move mouse or finger to control paddle</p>
+
+<script>
+const c=document.getElementById('game'),ctx=c.getContext('2d');
+let playerY=120,aiY=120,ballX=200,ballY=150,ballVX=3,ballVY=3;
+let playerScore=0,aiScore=0;
+
+c.addEventListener('mousemove',e=>{
+  const rect=c.getBoundingClientRect();
+  playerY=e.clientY-rect.top-30;
+});
+c.addEventListener('touchmove',e=>{
+  const rect=c.getBoundingClientRect();
+  playerY=e.touches[0].clientY-rect.top-30;
+});
+
+function reset(){
+  ballX=200;ballY=150;
+  ballVX=-ballVX;ballVY=(Math.random()-0.5)*4;
+}
+
+function update(){
+  ballX+=ballVX;ballY+=ballVY;
+  if(ballY<5||ballY>295)ballVY=-ballVY;
+
+  // AI paddle
+  aiY+=((ballY-15)-aiY)*0.08;
+
+  // collision
+  if(ballX<15&&ballY>playerY&&ballY<playerY+60){ballVX=-ballVX;ballX=15;}
+  if(ballX>385&&ballY>aiY&&ballY<aiY+60){ballVX=-ballVX;ballX=385;}
+
+  // score
+  if(ballX<0){aiScore++;reset();updateScore();}
+  if(ballX>400){playerScore++;reset();updateScore();}
+
+  if(playerScore>=5||aiScore>=5){
+    alert((playerScore>=5?'You Win!':'AI Wins!')+' Final: '+playerScore+'-'+aiScore);
+    playerScore=aiScore=0;updateScore();
+  }
+}
+
+function draw(){
+  ctx.fillStyle='#1e293b';ctx.fillRect(0,0,400,300);
+  ctx.fillStyle='#fff';ctx.fillRect(10,playerY,5,60);
+  ctx.fillRect(385,aiY,5,60);
+  ctx.beginPath();ctx.arc(ballX,ballY,7,0,Math.PI*2);ctx.fill();
+  ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(200,0);ctx.lineTo(200,300);ctx.stroke();
+}
+
+function updateScore(){
+  document.getElementById('score').textContent=`You ${playerScore} - ${aiScore} AI`;
+}
+
+function loop(){
+  update();draw();requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
